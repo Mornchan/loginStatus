@@ -16,11 +16,10 @@
 
 
 @class AccountStatusView;
-@interface AccountStatusView ()
+@interface AccountStatusView ()<CAAnimationDelegate>
 
 @property(strong,nonatomic) CAShapeLayer * commonLayer;
 @property(strong,nonatomic) CAShapeLayer * errorLayer;
-@property(strong,nonatomic) CAShapeLayer * circleLayer;
 @property(strong,nonatomic) CAShapeLayer * loadingLayer;
 
 @end
@@ -32,7 +31,7 @@
 {
     if (_commonLayer == nil) {
         _commonLayer = [CAShapeLayer layer];
-        _commonLayer.lineWidth = 2;
+        _commonLayer.lineWidth = MCLineWidth;
         _commonLayer.strokeColor = [UIColor blueColor].CGColor;
         _commonLayer.fillColor = [UIColor clearColor].CGColor;
         _commonLayer.lineCap = kCALineCapRound;
@@ -46,7 +45,7 @@
 {
     if (_errorLayer == nil) {
         _errorLayer = [CAShapeLayer layer];
-        _errorLayer.lineWidth = 2;
+        _errorLayer.lineWidth = MCLineWidth;
         _errorLayer.strokeColor = [UIColor blueColor].CGColor;
         _errorLayer.fillColor = [UIColor clearColor].CGColor;
         _errorLayer.lineCap = kCALineCapRound;
@@ -56,34 +55,21 @@
     return _errorLayer;
 }
 
-- (CAShapeLayer *)circleLayer
-{
-    if (_circleLayer == nil) {
-        _circleLayer = [CAShapeLayer layer];
-        _circleLayer.lineWidth = MCLineWidth;
-        _circleLayer.lineCap = kCALineCapRound;
-        _circleLayer.strokeColor = [UIColor blueColor].CGColor;
-        _circleLayer.strokeColor = [UIColor colorWithRed:87/255.0f green:192/255.0f blue:255/255.0f alpha:1].CGColor;
-        _circleLayer.fillColor = [UIColor clearColor].CGColor;
-        [self.layer addSublayer:_circleLayer];
-
-    }
-    return _circleLayer;
-}
-
 - (CAShapeLayer *)loadingLayer
 {
     if (_loadingLayer == nil) {
         _loadingLayer = [CAShapeLayer layer];
-        _loadingLayer.lineWidth = 2;
-        _loadingLayer.strokeColor = self.backgroundColor.CGColor;
-        _loadingLayer.fillColor = [UIColor clearColor].CGColor;
+        _loadingLayer.lineWidth = MCLineWidth;
         _loadingLayer.lineCap = kCALineCapRound;
-        _loadingLayer.lineJoin = kCALineJoinRound;
+        _loadingLayer.strokeColor = [UIColor blueColor].CGColor;
+        _loadingLayer.strokeColor = [UIColor colorWithRed:87/255.0f green:192/255.0f blue:255/255.0f alpha:1].CGColor;
+        _loadingLayer.fillColor = [UIColor clearColor].CGColor;
         [self.layer addSublayer:_loadingLayer];
+        
     }
     return _loadingLayer;
 }
+
 
 - (void)showLoading
 {
@@ -107,9 +93,9 @@
 
 - (void)setLayerNill
 {
-    if (self.circleLayer) {
-        [self.circleLayer removeFromSuperlayer];
-        self.circleLayer = nil;
+    if (self.loadingLayer) {
+        [self.loadingLayer removeFromSuperlayer];
+        self.loadingLayer = nil;
     }
     if (self.errorLayer) {
         [self.errorLayer removeFromSuperlayer];
@@ -118,10 +104,6 @@
     if (self.commonLayer) {
         [self.commonLayer removeFromSuperlayer];
         self.commonLayer = nil;
-    }
-    if (self.loadingLayer) {
-        [self.loadingLayer removeFromSuperlayer];
-        self.loadingLayer = nil;
     }
 }
 
@@ -133,7 +115,7 @@
         viewSize.size.width = viewSize.size.height = layerViewWH;
         self.frame = viewSize;
         self.backgroundColor = [UIColor clearColor];
-
+        
     }
     return self;
 }
@@ -142,58 +124,59 @@
 //LoadingAnimation
 - (void)showLoadingFirst
 {
-    CABasicAnimation * circleAnimationFirst = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-    circleAnimationFirst.fromValue = @(0.0);
-    circleAnimationFirst.toValue = @(1.0);
-    circleAnimationFirst.duration = animationDuration * 0.5;
-    circleAnimationFirst.beginTime = 0.0f;
-    circleAnimationFirst.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    CABasicAnimation * AnimationFirst = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+    AnimationFirst.fromValue = @(0.0);
+    AnimationFirst.toValue = @(1.0);
+    AnimationFirst.duration = animationDuration * 0.5;
+    AnimationFirst.beginTime = 0.0f;
+    AnimationFirst.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
     
-    CABasicAnimation * circleAnimationSecond = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
-    circleAnimationSecond.fromValue = @(0.0);
-    circleAnimationSecond.toValue = @(1.0);
-    circleAnimationSecond.duration = animationDuration * 0.5;
-    circleAnimationSecond.beginTime = animationDuration * 0.5;
-    circleAnimationSecond.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
-
+    CABasicAnimation * AnimationSecond = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+    AnimationSecond.fromValue = @(0.0);
+    AnimationSecond.toValue = @(1.0);
+    AnimationSecond.duration = animationDuration * 0.5;
+    AnimationSecond.beginTime = animationDuration * 0.5;
+    AnimationSecond.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+    
     CAAnimationGroup * animationGroup = [CAAnimationGroup animation];
     animationGroup.duration = animationDuration;
     animationGroup.repeatCount = HUGE;
     animationGroup.fillMode = kCAFillModeForwards;
-    animationGroup.animations = @[circleAnimationFirst,circleAnimationSecond];
+    animationGroup.animations = @[AnimationFirst,AnimationSecond];
     
-    UIBezierPath * loadingBezier = [UIBezierPath bezierPathWithArcCenter:CGPointMake(bezierCenter, bezierCenter) radius:circleRadius startAngle:- M_PI_2 endAngle:- M_PI_2 + 2 * M_PI clockwise:YES];
-    self.circleLayer.path = loadingBezier.CGPath;
-    [animationGroup setValue:@"loadingAnimation" forKey:@"circleAnimation"];
-    [self.circleLayer addAnimation:animationGroup forKey:@"cc"];
+    UIBezierPath * loadingBezier = [UIBezierPath bezierPathWithArcCenter:CGPointMake(bezierCenter, bezierCenter) radius:circleRadius startAngle: - M_PI_2 endAngle:- M_PI_2 + 2 * M_PI clockwise:YES];
+    self.loadingLayer.path = loadingBezier.CGPath;
+    [animationGroup setValue:@"loadingAnimation" forKey:@"Animation"];
+    [self.loadingLayer addAnimation:animationGroup forKey:nil];
     
 }
 
 //SuccessAnimation
 - (void)showSuccessFirst
 {
-    UIBezierPath * successBezier = [UIBezierPath bezierPathWithArcCenter:CGPointMake(bezierCenter, bezierCenter) radius:circleRadius startAngle:M_PI * 1.5 endAngle:M_PI * 3.0 clockwise:YES];
+    UIBezierPath * successBezier = [UIBezierPath bezierPathWithArcCenter:CGPointMake(bezierCenter, bezierCenter) radius:circleRadius startAngle: - M_PI_2 endAngle: -M_PI_2 + 1.5 * M_PI clockwise:YES];
     CAKeyframeAnimation * successAnimation = [CAKeyframeAnimation animationWithKeyPath:@"strokeEnd"];
-    self.circleLayer.path = successBezier.CGPath;
+    self.loadingLayer.path = successBezier.CGPath;
     successAnimation.delegate = self;
     successAnimation.values = @[@(0.0),@(1.0)];
     successAnimation.removedOnCompletion = NO;
     successAnimation.fillMode = kCAFillModeForwards;
     successAnimation.duration = animationDuration * 0.33;
     successAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
-    [successAnimation setValue:@"successAnimationFirst" forKey:@"circleAnimation"];
-    [self.circleLayer addAnimation:successAnimation forKey:nil];
+    [successAnimation setValue:@"successAnimationFirst" forKey:@"Animation"];
+    [self.loadingLayer addAnimation:successAnimation forKey:nil];
 }
 
 - (void)showSuccessSecond
 {
     UIBezierPath * successBezier = [UIBezierPath bezierPath];
     //B
-    [successBezier moveToPoint:CGPointMake(bezierCenter - circleRadius * acos(M_PI_2 * 0.333), bezierCenter)];
+    [successBezier moveToPoint:CGPointMake(bezierCenter - circleRadius, bezierCenter)];
     //O
     [successBezier addLineToPoint:CGPointMake(bezierCenter, bezierCenter+ circleRadius * 0.5)];
     //A
-    [successBezier addLineToPoint:CGPointMake(bezierCenter + circleRadius * cos(M_PI_4),  circleRadius * 0.25 - circleRadius * sin(M_PI_4 * 0.5) - 2)];
+    [successBezier addLineToPoint:CGPointMake(bezierCenter + circleRadius * 1.25 * atan(M_PI_4 * (65/90.0)),  bezierCenter - circleRadius * 0.75)];
+    
     self.commonLayer.path = successBezier.CGPath;
     self.commonLayer.strokeColor = [UIColor colorWithRed:38/255.0f green:209/255.0f blue:106/255.0f alpha:1].CGColor;
     
@@ -203,38 +186,45 @@
     successAnimation.removedOnCompletion = NO;
     successAnimation.fillMode = kCAFillModeForwards;
     successAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-    [successAnimation setValue:@"successAnimationSecond" forKey:@"circleAnimation"];
+    [successAnimation setValue:@"successAnimationSecond" forKey:@"Animation"];
     [self.commonLayer addAnimation:successAnimation forKey:nil];
 }
 
 //errorAnimation
 - (void)showErrorFirst
 {
-    UIBezierPath * errorBezier = [UIBezierPath bezierPathWithArcCenter:CGPointMake(bezierCenter, bezierCenter) radius:circleRadius startAngle:M_PI * 1.5 endAngle:M_PI * 3.5 - M_PI_4  clockwise:YES];
+    UIBezierPath * errorBezier = [UIBezierPath bezierPathWithArcCenter:CGPointMake(bezierCenter, bezierCenter)
+                                                                radius:circleRadius
+                                                            startAngle: - M_PI_2
+                                                              endAngle: - M_PI_2 + M_PI_4 + 1.5 * M_PI
+                                                             clockwise:YES];
     
     CAKeyframeAnimation * errorAnimationFirst = [CAKeyframeAnimation animationWithKeyPath:@"strokeEnd"];
-    self.circleLayer.path = errorBezier.CGPath;
-    self.circleLayer.strokeColor = [UIColor redColor].CGColor;
+    self.loadingLayer.path = errorBezier.CGPath;
+    self.loadingLayer.strokeColor = [UIColor redColor].CGColor;
     
     errorAnimationFirst.delegate = self;
     errorAnimationFirst.values = @[@(0.0),@(1.0)];
     errorAnimationFirst.duration = animationDuration * 0.33;
     errorAnimationFirst.removedOnCompletion = NO;
-    errorAnimationFirst.fillMode = kCAFillModeBackwards;
+    errorAnimationFirst.fillMode = kCAFillModeForwards;
     errorAnimationFirst.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-    [errorAnimationFirst setValue:@"errorAnimationFirst" forKey:@"circleAnimation"];
-    [self.circleLayer addAnimation:errorAnimationFirst forKey:nil];
-    
+    [errorAnimationFirst setValue:@"errorAnimationFirst" forKey:@"Animation"];
+    [self.loadingLayer addAnimation:errorAnimationFirst forKey:nil];
 }
+
 
 - (void)showErrorSecond
 {
     UIBezierPath * errorBezierFirst = [UIBezierPath bezierPath];
-    [errorBezierFirst moveToPoint:CGPointMake(bezierCenter - circleRadius * cos(M_PI_4), bezierCenter - circleRadius * sin(M_PI_4))];
-    [errorBezierFirst addLineToPoint:CGPointMake(bezierCenter + circleRadius * cos(M_PI_4), bezierCenter + circleRadius * sin(M_PI_4))];
-    
     UIBezierPath * errorBezierSecond = [UIBezierPath bezierPath];
+    //A
+    [errorBezierFirst moveToPoint:CGPointMake(bezierCenter - circleRadius * cos(M_PI_4), bezierCenter - circleRadius * sin(M_PI_4))];
+    //D
+    [errorBezierFirst addLineToPoint:CGPointMake(bezierCenter + circleRadius * cos(M_PI_4), bezierCenter + circleRadius * sin(M_PI_4))];
+    //B
     [errorBezierSecond moveToPoint:CGPointMake(bezierCenter + circleRadius * cos(M_PI_4), bezierCenter -  circleRadius * sin(M_PI_4))];
+    //C
     [errorBezierSecond addLineToPoint:CGPointMake(bezierCenter - circleRadius * cos(M_PI_4), bezierCenter + circleRadius * sin(M_PI_4))];
     
     self.commonLayer.path = errorBezierFirst.CGPath;
@@ -242,14 +232,14 @@
     self.commonLayer.strokeColor = [UIColor redColor].CGColor;
     self.errorLayer.strokeColor = [UIColor redColor].CGColor;
     
-    CAKeyframeAnimation * errorAnimationFirst = [CAKeyframeAnimation animationWithKeyPath:@"strokeEnd"];
-    errorAnimationFirst.values = @[@(0.0),@(1.0)];
-    errorAnimationFirst.duration = animationDuration * 0.33;
-    errorAnimationFirst.removedOnCompletion = NO;
-    errorAnimationFirst.fillMode = kCAFillModeForwards;
-    errorAnimationFirst.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-    [self.commonLayer addAnimation:errorAnimationFirst forKey:nil];
-    [self.errorLayer addAnimation:errorAnimationFirst forKey:nil];
+    CAKeyframeAnimation * errorAnimationSecond = [CAKeyframeAnimation animationWithKeyPath:@"strokeEnd"];
+    errorAnimationSecond.values = @[@(0.0),@(1.0)];
+    errorAnimationSecond.duration = animationDuration * 0.33;
+    errorAnimationSecond.removedOnCompletion = NO;
+    errorAnimationSecond.fillMode = kCAFillModeForwards;
+    errorAnimationSecond.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+    [self.commonLayer addAnimation:errorAnimationSecond forKey:nil];
+    [self.errorLayer addAnimation:errorAnimationSecond forKey:nil];
 }
 
 
@@ -264,28 +254,28 @@
     loadingAnimation.fillMode = kCAFillModeForwards;
     loadingAnimation.duration = animationDuration * 0.33;
     loadingAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-    [loadingAnimation setValue:@"hideLoadingAnimtion" forKey:@"circleAnimation"];
-    [self.circleLayer addAnimation:loadingAnimation forKey:nil];
+    [loadingAnimation setValue:@"hideLoadingAnimtion" forKey:@"Animation"];
+    [self.loadingLayer addAnimation:loadingAnimation forKey:nil];
 }
 
 
 // delegate
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
-    if ([[anim valueForKey:@"circleAnimation"] isEqualToString:@"loadingAnimation"]) {
+    if ([[anim valueForKey:@"Animation"] isEqualToString:@"loadingAnimation"]) {
     }
-    if ([[anim valueForKey:@"circleAnimation"] isEqualToString:@"successAnimationFirst"]) {
+    if ([[anim valueForKey:@"Animation"] isEqualToString:@"successAnimationFirst"]) {
         [self showSuccessSecond];
         [self hideCircle];
     }
-    if ([[anim valueForKey:@"circleAnimation"] isEqualToString:@"errorAnimationFirst"]) {
+    if ([[anim valueForKey:@"Animation"] isEqualToString:@"errorAnimationFirst"]) {
         [self hideCircle];
         [self showErrorSecond];
     }
-    if ([[anim valueForKey:@"circleAnimation"] isEqualToString:@"hideLoadingAnimtion"]) {
+    if ([[anim valueForKey:@"Animation"] isEqualToString:@"hideLoadingAnimtion"]) {
         
     }
-    if ([[anim valueForKey:@"circleAnimation"] isEqualToString:@"successAnimationSecond"]) {
+    if ([[anim valueForKey:@"Animation"] isEqualToString:@"successAnimationSecond"]) {
         [self hideCircle];
         
     }

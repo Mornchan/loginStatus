@@ -50,7 +50,7 @@
     
     UILabel * accountLabelBefore = [[UILabel alloc]initWithFrame:CGRectMake(firstBottomLine.frame.origin.x, firstBottomLine.frame.origin.y - textFieldHeight, self.view.frame.size.width, 28)];
     accountLabelBefore.font = [UIFont systemFontOfSize:14];
-    accountLabelBefore.text = @"手机号";
+    accountLabelBefore.text = @"请输入11位手机号";
     accountLabelBefore.textColor = [UIColor lightGrayColor];
     accountLabelBefore.alpha = 0.7;
     self.accountLabelBefore = accountLabelBefore;
@@ -70,7 +70,7 @@
     statusView.frame = frames;
     self.statusView = statusView;
     [self.view addSubview:statusView];
-
+    
     
 }
 
@@ -104,7 +104,7 @@
             }];
             return;
         }
-
+        
         if (textField.text.length <2) {
             [UIView animateWithDuration:0.1 animations:^{
                 if(self.accountLabelBefore.transform.ty == 0)
@@ -122,7 +122,7 @@
                             self.accountLabelAfter.alpha = 0.7;
                             self.accountLabelAfter.transform = CGAffineTransformTranslate(self.accountLabelAfter.transform, 0, -15);
                         }completion:^(BOOL finished) {
-
+                            
                         }];
                     }
                 }
@@ -134,7 +134,7 @@
         
         [self.statusView showSuccess];
     }
-
+    
     if (textField.text.length >11) {
         [self.statusView showError];
         self.firstBottomLine.backgroundColor = [UIColor redColor];
